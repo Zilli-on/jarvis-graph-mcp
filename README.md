@@ -1,10 +1,17 @@
 # jarvis-graph-mcp
 
 **Local-first code intelligence MCP server for Python projects.**
-Works with Claude Desktop, Claude Code, Cursor, Windsurf, Cline, and
-any other [Model Context Protocol](https://modelcontextprotocol.io)
-client. No telemetry. No cloud. No API costs. Your source never
-leaves your machine.
+Designed for any
+[Model Context Protocol](https://modelcontextprotocol.io) client —
+Claude Desktop, Claude Code, Cursor, Windsurf, Cline. No telemetry.
+No cloud. No API costs. Your source never leaves your machine.
+
+> **Status**: v0.1.0 initial release. Smoke-tested in-process via
+> FastMCP (server loads, 18 tools register, a real backend call
+> against a real repo returns structured data). Client-specific
+> integration guides below were written against each client's
+> documented MCP config format; field reports from real users
+> are welcome in issues.
 
 ---
 
@@ -37,8 +44,9 @@ structured answers — not fuzzy grep results.
 
 Every tool is a wrapper around
 [jarvis-graph-lite](https://github.com/Zilli-on/jarvis-graph-lite)
-(bundled separately), a stdlib-only code index with **273 passing
-tests**.
+(distributed separately), a stdlib-only code index with **277 passing
+tests**. No pip dependencies at all — only Python 3.11+ standard
+library.
 
 ## Why local-first
 
@@ -63,17 +71,16 @@ tests**.
 
 ### Install this package
 
-```bash
-pip install jarvis-graph-mcp
-```
-
-Or, from a local checkout:
+PyPI distribution is planned for v0.2. For now, install from source:
 
 ```bash
 git clone https://github.com/Zilli-on/jarvis-graph-mcp.git
 cd jarvis-graph-mcp
 pip install -e .
 ```
+
+This puts `jarvis-graph-mcp` on your PATH and makes
+`python -m jarvis_graph_mcp` work.
 
 ### Point it at jarvis-graph-lite
 
@@ -213,13 +220,17 @@ print(f'{len(tools)} tools registered')
 
 ## Roadmap
 
-- [x] V0.1: 18 tools, MCP stdio, subprocess backend, local-first
-- [ ] V0.2: in-process jarvis-graph-lite integration (no subprocess
+- [x] V0.1: 18 tools, MCP stdio, subprocess backend, local-first,
+      6 smoke tests, E2E verified against a real repo
+- [ ] V0.2: PyPI distribution (`pip install jarvis-graph-mcp`),
+      CI with GitHub Actions, verified screenshots against at
+      least one real MCP client
+- [ ] V0.3: in-process jarvis-graph-lite integration (no subprocess
       fork per call, ~3x speedup for small queries)
-- [ ] V0.3: `resources://` entries for health reports so clients can
+- [ ] V0.4: `resources://` entries for health reports so clients can
       subscribe to "is my repo healthy?" as a live resource
-- [ ] V0.4: TypeScript / JavaScript support (current: Python only)
-- [ ] V0.5: Multi-repo mode — scan a whole workspace in one call
+- [ ] V0.5: TypeScript / JavaScript support (current: Python only)
+- [ ] V0.6: Multi-repo mode — scan a whole workspace in one call
 
 ## License
 
