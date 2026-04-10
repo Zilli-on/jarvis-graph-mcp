@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jarvis-graph-mcp"
+version = "0.1.0"
+description = "Local-first code intelligence MCP server. Exposes jarvis-graph-lite's 17 commands (refactor_priority, find_coverage_gaps, generate_test_skeleton, health_report, and more) to any MCP client — Claude Desktop, Claude Code, Cursor, Windsurf, Cline."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [
+  { name = "Fabien Damboeck" },
+]
+keywords = [
+  "mcp",
+  "model-context-protocol",
+  "code-intelligence",
+  "refactoring",
+  "coverage",
+  "static-analysis",
+  "python",
+  "claude",
+  "claude-code",
+  "cursor",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Software Development :: Testing",
+]
+dependencies = [
+  "mcp>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Zilli-on/jarvis-graph-mcp"
+Issues = "https://github.com/Zilli-on/jarvis-graph-mcp/issues"
+
+[project.scripts]
+jarvis-graph-mcp = "jarvis_graph_mcp.server:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
