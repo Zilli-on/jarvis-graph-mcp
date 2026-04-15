@@ -1,0 +1,58 @@
+name: CI
+
+# Zero-cost: GitHub Free tier minutes on ubuntu-latest.
+# This server is pure Python + stdlib + mcp dep. Linux runner is fine
+# (no native Windows-only paths in the import surface).
+#
+# CI's job here is narrow but critical: verify that `pip install -e .`
+# from a clean checkout actually works. The 2026-04-15 install bug
+# (pyproject.toml declared an unpublished pip dep on jarvis-graph-lite)
+# would have been caught immediately by this workflow if it had existed.
+# Adding it now so future regressions surface in the PR, not in the
+# first user's bug report.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  install-and-test:
+    name: install + smoke tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout mcp
+        uses: actions/checkout@v4
+        with:
+          path: jarvis-graph-mcp
+
+      - name: checkout lite (sibling clone, matches runtime path discovery)
+        uses: actions/checkout@v4
+        with:
+          repository: Zilli-on/jarvis-graph-lite
+          path: jarvis-graph-lite
+
+      - name: setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: install mcp from source (fresh env — exercises the install path strangers see)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ./jarvis-graph-mcp
+          pip install pytest
+
+      - name: verify mcp module imports
+        run: |
+          cd jarvis-graph-mcp
+          python -c "from jarvis_graph_mcp.server import mcp; print('mcp object:', type(mcp).__name__)"
+
+      - name: smoke tests (need lite at JARVIS_GRAPH_LITE_PATH)
+        env:
+          JARVIS_GRAPH_LITE_PATH: ${{ github.workspace }}/jarvis-graph-lite/src
+        run: |
+          cd jarvis-graph-mcp
+          python -m pytest -v
