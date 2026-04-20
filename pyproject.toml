@@ -37,7 +37,17 @@ classifiers = [
 ]
 dependencies = [
   "mcp>=1.0.0",
-  "jarvis-graph-lite>=0.12.4",
+  # NOTE: jarvis-graph-lite is intentionally NOT a pip dependency.
+  # mcp invokes lite via *subprocess* against a path discovered at
+  # runtime (see backend.py:_locate_lite_src). The three resolution
+  # rules:
+  #   1. JARVIS_GRAPH_LITE_PATH env var (absolute path)
+  #   2. Sibling clone at ../jarvis-graph-lite/src
+  #   3. Windows default C:\JARVIS\tools\jarvis-graph-lite\src
+  # Declaring lite as a pip dep would (a) require lite to be on
+  # PyPI before mcp can install (chicken-and-egg until both ship)
+  # and (b) suggest an import relationship that doesn't exist.
+  # See README.md "Install" section for the install-order contract.
 ]
 
 [project.urls]
