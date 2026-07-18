@@ -42,16 +42,19 @@ EXPECTED_TOOL_NAMES = {
 class ServerImportTests(unittest.TestCase):
 	def test_server_module_imports(self) -> None:
 		from jarvis_graph_mcp.server import mcp  # noqa: F401
+
 		self.assertIsNotNone(mcp)
 
 	def test_main_entry_point_exists(self) -> None:
 		from jarvis_graph_mcp.server import main
+
 		self.assertTrue(callable(main))
 
 
 class ToolSurfaceTests(unittest.TestCase):
 	def _get_tools(self) -> list:
 		from jarvis_graph_mcp.server import mcp
+
 		return asyncio.run(mcp.list_tools())
 
 	def test_all_expected_tools_registered(self) -> None:

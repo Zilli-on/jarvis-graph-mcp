@@ -29,4 +29,4 @@ from pathlib import Path
 # resolve whether or not `pip install -e .` has been run.
 SRC = Path(__file__).resolve().parent.parent / "src"
 if SRC.is_dir() and str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
+	sys.path.insert(0, str(SRC))

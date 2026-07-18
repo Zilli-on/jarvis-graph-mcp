@@ -59,3 +59,6 @@ where = ["src"]
 # so no async fixtures exist — but the loaded plugin still warns when
 # this scope is unset. Pin it to the future default to keep runs clean.
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff.format]
+indent-style = "tab"
