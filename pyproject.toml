@@ -36,7 +36,11 @@ classifiers = [
   "Topic :: Software Development :: Testing",
 ]
 dependencies = [
-  "mcp>=1.0.0",
+  "mcp>=1.0.0,<2",
+  # Upper bound is load-bearing, not stylistic: mcp 2.0.0 removed
+  # mcp.server.fastmcp (server.py's only import from the package),
+  # so any unpinned install breaks at import time with zero tools
+  # registered. See failures/002-mcp-2.0-removed-fastmcp.md.
   # NOTE: jarvis-graph-lite is intentionally NOT a pip dependency.
   # mcp invokes lite via *subprocess* against a path discovered at
   # runtime (see backend.py:_locate_lite_src). The three resolution

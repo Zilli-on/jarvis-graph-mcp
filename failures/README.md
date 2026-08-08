@@ -35,3 +35,4 @@ Fix / Prevention rule).
 | # | Title | Discovery |
 |---|---|---|
 | 001 | pyproject.toml pip-depended on an unpublished package | 2026-04-15, `pip install` against PyPI against a fresh env |
+| 002 | mcp 2.0.0 removed mcp.server.fastmcp, unpinned dep broke installs | 2026-08-08, Node #2 first-time setup |
