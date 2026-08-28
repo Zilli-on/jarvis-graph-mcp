@@ -15,10 +15,25 @@ Two tools shipped exactly like that until 2026-08-06:
   * `find_long_functions` passed `--min-lines`, which the CLI spells
     `--threshold`.
 
-The check below reads the CLI's real argparse surface via
-`jarvis_graph.cli._build_parser()`, records what every registered MCP tool
-would pass by stubbing `run_graph`, and compares the two. No subprocess and
-no indexing — it is a pure wiring check.
+The checks below read the CLI's real argparse surface via
+`jarvis_graph.cli._build_parser()` and compare it against what the MCP
+layer actually sends. That happens in two layers, because the cheap one
+has a blind spot:
+
+  * `_record_backend_calls()` stubs `run_graph` and therefore sees only
+    the *extra* arguments a tool hands over. No subprocess, no indexing,
+    no lite checkout needed — but blind to everything `run_graph` adds
+    on its own.
+  * `_record_backend_argv()` stubs `subprocess.run` one level deeper, so
+    the real argv is recorded: the `--json` that `run_graph` appends to
+    every single call, the `index` subcommand that `ensure_indexed`
+    fires ahead of most tools, and positional arguments. Each argv is
+    then fed through the parser, which also rejects wrong positional
+    arity — something no flag-name comparison can catch.
+
+The second layer is not redundancy. Renaming `--json` inside `run_graph`
+breaks every tool at runtime in exactly the way described above, and the
+extras-only check stays green through all of it.
 
 It is skipped when no jarvis-graph-lite checkout is reachable (the lite
 package is resolved at runtime, not a pip dependency), so a bare clone of
@@ -100,6 +115,37 @@ def _record_backend_calls() -> list[tuple[str, tuple[str, ...]]]:
 	return calls
 
 
+def _record_backend_argv() -> list[list[str]]:
+	"""Call every registered tool with `subprocess.run` stubbed.
+
+	Returns the full argv of each invocation, so assertions can see what
+	`run_graph` builds — not merely what a tool handed to it. Needs a
+	reachable lite checkout: `run_graph` resolves one before it assembles
+	any arguments, and without it no argv is ever built.
+	"""
+	argvs: list[list[str]] = []
+
+	class _CompletedStub:
+		returncode = 0
+		stdout = "{}"
+		stderr = ""
+
+	def fake_subprocess_run(args: list[str], **_: Any) -> _CompletedStub:
+		argvs.append(list(args))
+		return _CompletedStub()
+
+	original_run = backend.subprocess.run
+	backend.subprocess.run = fake_subprocess_run
+	try:
+		for tool in asyncio.run(srv.mcp.list_tools()):
+			args: dict[str, Any] = {"repo_path": "/unused/by/this/test"}
+			args.update(EXTRA_TOOL_ARGS.get(tool.name, {}))
+			asyncio.run(srv.mcp.call_tool(tool.name, args))
+	finally:
+		backend.subprocess.run = original_run
+	return argvs
+
+
 class BackendCallShapeTests(unittest.TestCase):
 	"""Checks that need no jarvis-graph-lite checkout."""
 
@@ -153,6 +199,40 @@ class CliFlagContractTests(unittest.TestCase):
 		self.assertFalse(
 			unknown,
 			msg=(f"MCP layer passes flags the CLI does not define: {sorted(unknown)}"),
+		)
+
+	def test_real_argv_is_accepted_by_the_cli(self) -> None:
+		rejected: list[str] = []
+		for argv in _record_backend_argv():
+			# `run_graph` builds [python, -m, jarvis_graph, command, ...].
+			# Assert that shape rather than trusting the indices below:
+			# a changed layout would otherwise parse the wrong slice and
+			# quietly pass.
+			self.assertEqual(
+				argv[1:3],
+				["-m", "jarvis_graph"],
+				msg=f"run_graph argv layout changed: {argv[:4]}",
+			)
+			command, rest = argv[3], argv[4:]
+			try:
+				self.parser.parse_args([command, *rest])
+			except SystemExit:
+				rejected.append(" ".join([command, *rest]))
+		self.assertFalse(
+			rejected,
+			msg=f"the CLI rejects argv the MCP layer builds: {sorted(rejected)}",
+		)
+
+	def test_argv_check_covers_the_implicit_index_call(self) -> None:
+		# A guard for the guard. If `ensure_indexed` stops firing — or gets
+		# stubbed away as it is in `_record_backend_calls` — the check above
+		# would silently lose its only coverage of the `index` subcommand
+		# and still report green. This makes that loss loud.
+		commands = {argv[3] for argv in _record_backend_argv()}
+		self.assertIn(
+			"index",
+			commands,
+			msg="ensure_indexed no longer reaches the backend",
 		)
 
 
