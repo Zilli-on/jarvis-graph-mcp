@@ -254,16 +254,20 @@ def context(repo_path: str, symbol: str) -> dict[str, Any]:
 		"Use this before refactoring to know what you're touching."
 	),
 )
-def impact(repo_path: str, symbol: str, depth: int = 3) -> dict[str, Any]:
-	"""Returns the transitive caller set."""
+def impact(repo_path: str, symbol: str) -> dict[str, Any]:
+	"""Returns the transitive caller set.
+
+	The lite CLI signature is `impact [--json] <repo> <target>` — it has
+	no depth option; the traversal depth is fixed inside the engine. The
+	tool used to advertise a `depth` parameter and pass `--depth`, which
+	argparse rejected with rc=2, so every single call failed.
+	"""
 	try:
 		ensure_indexed(repo_path)
 		data = run_graph(
 			"impact",
 			repo_path,
 			symbol,
-			"--depth",
-			str(depth),
 		)
 		return data if isinstance(data, dict) else {"impact": data}
 	except GraphBackendError as exc:
@@ -405,13 +409,18 @@ def find_long_functions(
 	min_lines: int = 50,
 	limit: int = 50,
 ) -> dict[str, Any]:
-	"""Returns long functions ranked by length."""
+	"""Returns long functions ranked by length.
+
+	The CLI spells the line-count cutoff `--threshold`; passing
+	`--min-lines` made argparse exit rc=2 on every call. The MCP-facing
+	parameter keeps the clearer name `min_lines`.
+	"""
 	try:
 		ensure_indexed(repo_path)
 		data = run_graph(
 			"find_long_functions",
 			repo_path,
-			"--min-lines",
+			"--threshold",
 			str(min_lines),
 			"--limit",
 			str(limit),

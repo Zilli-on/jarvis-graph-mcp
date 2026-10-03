@@ -62,3 +62,13 @@ package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+# Silence the pytest-asyncio PytestDeprecationWarning on every run.
+# The smoke tests drive coroutines via asyncio.run() inside unittest,
+# so no async fixtures exist — but the loaded plugin still warns when
+# this scope is unset. Pin it to the future default to keep runs clean.
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff.format]
+indent-style = "tab"

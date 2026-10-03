@@ -103,9 +103,7 @@ def run_graph(
 			f"jarvis-graph {command} timed out after {timeout_s}s on {repo}"
 		) from exc
 	except FileNotFoundError as exc:
-		raise GraphBackendError(
-			f"Python interpreter not found: {python}"
-		) from exc
+		raise GraphBackendError(f"Python interpreter not found: {python}") from exc
 
 	if proc.returncode != 0:
 		stderr = (proc.stderr or "").strip()
