@@ -36,7 +36,8 @@ classifiers = [
   "Topic :: Software Development :: Testing",
 ]
 dependencies = [
-  "mcp>=1.0.0",
+  # <2: mcp 2.x renamed FastMCP to MCPServer, so server.py does not import.
+  "mcp>=1.0.0,<2",
   # NOTE: jarvis-graph-lite is intentionally NOT a pip dependency.
   # mcp invokes lite via *subprocess* against a path discovered at
   # runtime (see backend.py:_locate_lite_src). The three resolution
